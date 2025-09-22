@@ -3,6 +3,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from datetime import datetime
 import pandas
 from collections import defaultdict
+import argparse
 
 
 def get_drinks(filename, table_sheet_name):
@@ -60,20 +61,23 @@ def save_html(homepage, rendered_page):
 
 
 def main():
-    foundation_year = 1920
-    filename = 'wine3.xlsx'
-    sheet_name = 'Лист1'
-    template_name = 'template.html'
-    homepage_name = 'index.html'
-    filepath = '.'
+    parser = argparse.ArgumentParser(description='Генератор винного сайта')
+    parser.add_argument('--excel-file', default='wine3.xlsx')
+    parser.add_argument('--sheet-name', default='Лист1')
+    parser.add_argument('--template', default='template.html')
+    parser.add_argument('--output', default='index.html')
 
-    drinks_by_category = get_drinks(filename, sheet_name)
+    args = parser.parse_args()
+
+    foundation_year = 1920
+
+    drinks_by_category = get_drinks(args.excel_file, args.sheet_name)
     winery_age = get_year_formatted(foundation_year)
 
-    template = get_template(filepath, template_name)
+    template = get_template('.', args.template)
     rendered_page = render_template(template, winery_age, drinks_by_category)
 
-    save_html(homepage_name, rendered_page)
+    save_html(args.output, rendered_page)
 
     server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
     server.serve_forever()
